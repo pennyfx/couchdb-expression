@@ -27,22 +27,19 @@ export default (session) => {
 
       super(options);
 
+      this.protocol       = options.protocol    || 'http';
       this.hostname       = options.hostname    || 'localhost';
       this.port           = options.port        || 5984;
       this.username       = options.username    || '';
       this.password       = options.password    || '';
       this.databaseName   = options.database    || 'sessions';
-      
+
       this.setErrorCount = 0;
 
-      this.connection = nano(
-        /**
-         * Okay, so this works for me because I've set a username/password
-         * for my instance of CouchDB. Haven't tested for case where username/
-         * password is not set.
-         */
-        `http://${this.username}:${this.password}@${this.hostname}:${this.port}`
-      );
+      const credentials = this.username.length > 0 ? `${this.username}:${this.password}@` : ''
+      const nano_url = `${this.protocol}://${credentials}${this.hostname}:${this.port}`;
+
+      this.connection = nano(nano_url);
 
       async function initializeDatabase() {
         const db = await new Promise((resolve, reject) => {
@@ -68,7 +65,7 @@ export default (session) => {
                   /**
                    * Resolves the DB once it has been created
                    */
-                  resolve(this.connection.db.use(this.databaseName));  
+                  resolve(this.connection.db.use(this.databaseName));
                 });
               } else {
                 /**
@@ -104,8 +101,8 @@ export default (session) => {
 
     /**
      * Returns a session
-     * @param {string} sid 
-     * @param {function} callback 
+     * @param {string} sid
+     * @param {function} callback
      * @return {object} the session
      */
     get(sid, callback) {
@@ -156,8 +153,8 @@ export default (session) => {
 
     /**
      * Destroys an existing session
-     * @param {string} sid 
-     * @param {function} callback 
+     * @param {string} sid
+     * @param {function} callback
      */
     destroy(sid, callback) {
       this.get(sid, (err, doc) => (
@@ -173,7 +170,7 @@ export default (session) => {
 
     /**
      * Clears all the documents in the DB
-     * @param {function} callback 
+     * @param {function} callback
      */
     clear(callback) {
       this.execute(db => {
@@ -201,7 +198,7 @@ export default (session) => {
 
     /**
      * Gets the number of documents in the DB
-     * @param {function} callback 
+     * @param {function} callback
      */
     length(callback) {
       this.execute(db => (
@@ -219,7 +216,7 @@ export default (session) => {
 
     /**
      * Gets all the documents in the DB
-     * @param {function} callback 
+     * @param {function} callback
      */
     all(callback) {
       this.execute(db => (
@@ -236,10 +233,10 @@ export default (session) => {
     }
 
     /**
-     * 
-     * @param {string} sid 
-     * @param {object} session 
-     * @param {function} callback 
+     *
+     * @param {string} sid
+     * @param {object} session
+     * @param {function} callback
      */
     touch(sid, session, callback) {
       this.execute(db => {
