@@ -112,7 +112,7 @@ export default (session) => {
             info('Attempt to get cookie information from DB failed.');
             error(err);
           }
-          callback(err, doc ? doc : null);
+          callback(null, doc ? doc : null);
         });
       });
     }
